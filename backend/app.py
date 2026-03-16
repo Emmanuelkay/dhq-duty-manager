@@ -35,10 +35,6 @@ def create_app():
     def health_check():
         return jsonify({"status": "healthy"}), 200
         
-    @app.route('/api/health', methods=['GET'])
-    def health_check():
-        return jsonify({"status": "healthy"}), 200
-        
     with app.app_context():
         db.create_all()
         from models import User
