@@ -18,12 +18,12 @@ def add_personnel():
         
     data = request.get_json()
     service_number = data.get('service_number')
-    password = data.get('password')
+    password = 'Changeme!'
     rank = data.get('rank')
     name = data.get('name')
     role = data.get('role', 'User')
     
-    if not all([service_number, password, rank, name]):
+    if not all([service_number, rank, name]):
         return jsonify({"error": "Missing required fields"}), 400
         
     if User.query.filter_by(service_number=service_number).first():

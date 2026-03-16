@@ -36,7 +36,7 @@ export default function Login() {
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="input-group animate-delay-1">
+                    <div className="input-group animate-fade-in animate-delay-1">
                         <label>Service Number</label>
                         <input
                             type="text"
@@ -52,7 +52,7 @@ export default function Login() {
                         <Shield size={48} color="var(--primary)" style={{ filter: 'drop-shadow(0 0 15px var(--primary-glow))' }} />
                     </div>
 
-                    <div className="input-group animate-delay-2" style={{ marginBottom: '2rem' }}>
+                    <div className="input-group animate-fade-in animate-delay-2" style={{ marginBottom: '2rem' }}>
                         <label>Password</label>
                         <input
                             type="password"
@@ -64,7 +64,7 @@ export default function Login() {
                         />
                     </div>
 
-                    <button type="submit" className="btn btn-primary animate-delay-3" style={{ width: '100%', padding: '0.8rem' }} disabled={loading}>
+                    <button type="submit" className="btn btn-primary animate-fade-in animate-delay-3" style={{ width: '100%', padding: '0.8rem' }} disabled={loading}>
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
                 </form>

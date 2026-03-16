@@ -13,7 +13,6 @@ export default function Admin() {
     const [newSvcNo, setNewSvcNo] = useState('');
     const [newName, setNewName] = useState('');
     const [newRank, setNewRank] = useState('');
-    const [newPassword, setNewPassword] = useState('');
     const [newRole, setNewRole] = useState('User');
 
     // New Duty Form State
@@ -81,14 +80,14 @@ export default function Admin() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    service_number: newSvcNo, name: newName, rank: newRank, password: newPassword, role: newRole
+                    service_number: newSvcNo, name: newName, rank: newRank, role: newRole
                 })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
 
             toast.success('User added successfully');
-            setNewSvcNo(''); setNewName(''); setNewRank(''); setNewPassword(''); setNewRole('User');
+            setNewSvcNo(''); setNewName(''); setNewRank(''); setNewRole('User');
             fetchUsers();
         } catch (err) {
             toast.error(err.message || 'Failed to add user');
@@ -105,6 +104,22 @@ export default function Admin() {
             fetchUsers();
         } catch (err) {
             toast.error(err.message || 'Failed to delete user');
+        }
+    };
+
+    const handleResetPassword = async (id, name) => {
+        if (!window.confirm(`Reset password for ${name} to default ('Changeme!')?`)) return;
+        try {
+            const res = await fetch(`/api/users/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: 'Changeme!' })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            toast.success(`Password for ${name} has been reset`);
+        } catch (err) {
+            toast.error(err.message || 'Failed to reset password');
         }
     };
 
@@ -154,11 +169,10 @@ export default function Admin() {
                         <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Directory</h2>
                     </div>
 
-                    <form onSubmit={handleAddUser} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
+                    <form onSubmit={handleAddUser} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
                         <div><label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Service #</label><input type="text" className="input-field" value={newSvcNo} onChange={(e) => setNewSvcNo(e.target.value)} required /></div>
                         <div><label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Name</label><input type="text" className="input-field" value={newName} onChange={(e) => setNewName(e.target.value)} required /></div>
                         <div><label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Rank</label><input type="text" className="input-field" value={newRank} onChange={(e) => setNewRank(e.target.value)} required /></div>
-                        <div><label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Password</label><input type="password" className="input-field" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /></div>
                         <div>
                             <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Role</label>
                             <select className="input-field" value={newRole} onChange={(e) => setNewRole(e.target.value)}>
@@ -188,11 +202,16 @@ export default function Admin() {
                                         <td>{u.rank}</td>
                                         <td><span className={u.role === 'Admin' ? 'badge badge-admin' : 'badge badge-user'}>{u.role}</span></td>
                                         <td style={{ textAlign: 'right' }}>
-                                            {user.id !== u.id && (
-                                                <button onClick={() => handleDeleteUser(u.id)} className="btn btn-danger" style={{ padding: '0.4rem 0.8rem', fontSize: '12px' }}>
-                                                    <Trash2 size={12} /> Remove
+                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                                <button onClick={() => handleResetPassword(u.id, u.name)} className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '12px' }}>
+                                                    <Shield size={12} /> Reset Pwd
                                                 </button>
-                                            )}
+                                                {user.id !== u.id && (
+                                                    <button onClick={() => handleDeleteUser(u.id)} className="btn btn-danger" style={{ padding: '0.4rem 0.8rem', fontSize: '12px' }}>
+                                                        <Trash2 size={12} /> Remove
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

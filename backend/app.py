@@ -22,6 +22,15 @@ def create_app():
     app.register_blueprint(personnel_bp, url_prefix='/api/users')
     app.register_blueprint(duty_bp, url_prefix='/api/duties')
     
+    @app.before_request
+    def check_password_change():
+        from flask import request, session, jsonify
+        if request.method == 'OPTIONS':
+            return
+        if request.endpoint and 'auth_bp' not in request.endpoint and 'health_check' not in request.endpoint:
+            if session.get('requires_password_change'):
+                return jsonify({"error": "Password change required.", "requires_password_change": True}), 403
+
     @app.route('/api/health', methods=['GET'])
     def health_check():
         return jsonify({"status": "healthy"}), 200

@@ -157,7 +157,7 @@ export default function Dashboard() {
 
                                     {hasDuty && (
                                         <div className="duty-pill" style={currentToday ? { background: 'var(--primary)', boxShadow: '0 4px 15px var(--primary-glow)' } : {}} title={`${dayDuties[0].user.rank} ${dayDuties[0].user.name}`}>
-                                            {dayDuties[0].user.name.split(' ').pop()}
+                                            {dayDuties[0].user.rank} {dayDuties[0].user.name.split(' ').pop()}
                                         </div>
                                     )}
                                 </div>

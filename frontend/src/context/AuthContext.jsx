@@ -46,6 +46,20 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: data.error };
     };
 
+    const changePassword = async (new_password) => {
+        const res = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ new_password }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+            setUser({ ...user, requires_password_change: false });
+            return { success: true };
+        }
+        return { success: false, error: data.error };
+    };
+
     const logout = async () => {
         await fetch('/api/auth/logout', { method: 'POST' });
         setUser(null);

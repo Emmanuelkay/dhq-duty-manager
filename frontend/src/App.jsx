@@ -7,11 +7,14 @@ import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import Navbar from './components/Navbar';
 
+import ChangePassword from './pages/ChangePassword';
+
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth();
 
   if (loading) return <div className="container">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (user.requires_password_change) return <ChangePassword />;
   if (adminOnly && user.role !== 'Admin') return <Navigate to="/" replace />;
 
   return (
