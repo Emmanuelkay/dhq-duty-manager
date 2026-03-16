@@ -35,10 +35,27 @@ def create_app():
     def health_check():
         return jsonify({"status": "healthy"}), 200
         
+    @app.route('/api/health', methods=['GET'])
+    def health_check():
+        return jsonify({"status": "healthy"}), 200
+        
+    with app.app_context():
+        db.create_all()
+        from models import User
+        if not User.query.filter_by(service_number='admin').first():
+            admin_user = User(
+                service_number='admin',
+                name='Administrator',
+                rank='System Admin',
+                role='Admin'
+            )
+            admin_user.set_password('admin123')
+            db.session.add(admin_user)
+            db.session.commit()
+            print("Admin user created.")
+
     return app
 
 if __name__ == '__main__':
     app = create_app()
-    with app.app_context():
-        db.create_all()
     app.run(debug=True, port=5000)
