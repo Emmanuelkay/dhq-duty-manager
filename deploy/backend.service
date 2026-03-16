@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve Personnel Management Backend
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/pers_management/backend
+Environment="PATH=/opt/pers_management/backend/venv/bin"
+ExecStart=/opt/pers_management/backend/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 -m 007 app:create_app()
+
+[Install]
+WantedBy=multi-user.target
