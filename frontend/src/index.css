@@ -180,6 +180,12 @@ h5 {
   background: rgba(0, 0, 0, 0.4);
 }
 
+/* Date picker icon visibility in dark mode */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

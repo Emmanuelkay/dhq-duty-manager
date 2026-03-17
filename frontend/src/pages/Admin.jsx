@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Users, UserPlus, Shield, Trash2 } from 'lucide-react';
+import { Users, UserPlus, Shield, Trash2, Calendar } from 'lucide-react';
 
 export default function Admin() {
     const { user } = useAuth();
@@ -223,7 +223,7 @@ export default function Admin() {
                 {/* Duty Scheduling Section */}
                 <div className="glass-panel animate-fade-in animate-delay-1" style={{ padding: '2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
-                        <Shield size={20} color="var(--primary)" />
+                        <Calendar size={20} color="var(--primary)" />
                         <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Schedule Assignments</h2>
                     </div>
 
