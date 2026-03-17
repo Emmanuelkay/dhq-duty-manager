@@ -70,7 +70,7 @@ class Leave(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    month = db.Column(db.String(7), nullable=False) # Format: YYYY-MM
+    year = db.Column(db.String(4), nullable=False) # Format: YYYY
     note = db.Column(db.String(200), nullable=True)
     
     user = db.relationship('User', backref=db.backref('leaves', lazy=True, cascade='all, delete-orphan'))
@@ -79,7 +79,7 @@ class Leave(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'month': self.month,
+            'year': self.year,
             'note': self.note,
             'user': self.user.to_dict() if self.user else None
         }

@@ -9,7 +9,7 @@ export default function Navbar() {
     if (!user) return null;
 
     return (
-        <nav className="navbar" style={{ borderBottom: '1px solid var(--border-light)' }}>
+        <nav className="navbar no-print" style={{ borderBottom: '1px solid var(--border-light)' }}>
             <div className="nav-links">
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', textDecoration: 'none', color: 'var(--text-primary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>

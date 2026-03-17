@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { CalendarDays, Trash2, Printer } from 'lucide-react';
 
 export default function Leaves() {
@@ -10,12 +10,12 @@ export default function Leaves() {
     const [users, setUsers] = useState([]);
 
     // Filter state
-    const currentMonth = format(new Date(), 'yyyy-MM');
-    const [filterMonth, setFilterMonth] = useState(currentMonth);
+    const currentYear = new Date().getFullYear().toString();
+    const [filterYear, setFilterYear] = useState(currentYear);
 
     // Form state
     const [leaveUserId, setLeaveUserId] = useState('');
-    const [leaveMonth, setLeaveMonth] = useState(currentMonth);
+    const [leaveYear, setLeaveYear] = useState(currentYear);
     const [leaveNote, setLeaveNote] = useState('');
 
     useEffect(() => {
@@ -23,11 +23,11 @@ export default function Leaves() {
         if (user.role === 'Admin') {
             fetchUsers();
         }
-    }, [filterMonth, user.role]);
+    }, [filterYear, user.role]);
 
     const fetchLeaves = async () => {
         try {
-            const url = filterMonth ? `/api/leaves/?month=${filterMonth}` : '/api/leaves/';
+            const url = filterYear ? `/api/leaves/?year=${filterYear}` : '/api/leaves/';
             const res = await fetch(url);
             if (res.ok) setLeaves(await res.json());
         } catch (err) { console.error('Failed to load leaves', err); }
@@ -45,7 +45,7 @@ export default function Leaves() {
         try {
             const payload = {
                 user_id: leaveUserId,
-                month: leaveMonth,
+                year: leaveYear,
                 note: leaveNote
             };
 
@@ -61,10 +61,10 @@ export default function Leaves() {
             toast.success('Leave record added');
             setLeaveUserId('');
             setLeaveNote('');
-            if (leaveMonth === filterMonth) {
+            if (leaveYear === filterYear) {
                 fetchLeaves();
             } else {
-                setFilterMonth(leaveMonth); // This will trigger fetchLeaves via useEffect
+                setFilterYear(leaveYear); // This will trigger fetchLeaves via useEffect
             }
         } catch (err) {
             toast.error(err.message || 'Failed to add leave');
@@ -87,27 +87,22 @@ export default function Leaves() {
         window.print();
     };
 
-    const formatMonthDisplay = (yyyyMM) => {
-        if (!yyyyMM) return '';
-        const [year, month] = yyyyMM.split('-');
-        const date = new Date(year, month - 1);
-        return format(date, 'MMMM yyyy');
-    };
-
     return (
         <div className="container print-container">
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', paddingTop: '1rem' }}>
                 <div>
                     <h1 style={{ margin: 0 }}>Leave Tracker</h1>
-                    <p style={{ color: 'var(--text-secondary)' }}>Log of personnel on monthly leave.</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>Log of personnel on yearly leave.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <input
-                        type="month"
+                        type="number"
+                        min="2000"
+                        max="2099"
                         className="input-field"
                         style={{ padding: '0.6rem 1rem', width: 'auto' }}
-                        value={filterMonth}
-                        onChange={(e) => setFilterMonth(e.target.value)}
+                        value={filterYear}
+                        onChange={(e) => setFilterYear(e.target.value)}
                     />
                     <button onClick={handlePrint} className="btn btn-outline">
                         <Printer size={16} /> Print Report
@@ -117,7 +112,7 @@ export default function Leaves() {
 
             <div className="print-only" style={{ display: 'none', marginBottom: '2rem', textAlign: 'center' }}>
                 <h2>DHQ CSOC - Leave Report</h2>
-                <p>Month: {formatMonthDisplay(filterMonth)}</p>
+                <p>Year: {filterYear}</p>
                 <p>Generated on: {format(new Date(), 'PPp')}</p>
             </div>
 
@@ -139,9 +134,9 @@ export default function Leaves() {
                                     ))}
                                 </select>
                             </div>
-                            <div style={{ flex: '1 1 150px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Month</label>
-                                <input type="month" className="input-field" value={leaveMonth} onChange={(e) => setLeaveMonth(e.target.value)} required />
+                            <div style={{ flex: '1 1 100px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Year</label>
+                                <input type="number" min="2000" max="2099" className="input-field" value={leaveYear} onChange={(e) => setLeaveYear(e.target.value)} required />
                             </div>
                             <div style={{ flex: '2 1 200px' }}>
                                 <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Notes (Optional)</label>
@@ -154,7 +149,7 @@ export default function Leaves() {
 
                 <div className="glass-panel animate-fade-in animate-delay-1 print-unstyle" style={{ padding: '2rem' }}>
                     <div style={{ paddingBottom: '1rem', marginBottom: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <h3 className="no-print" style={{ margin: 0 }}>Showing Leaves for: <span style={{ color: 'var(--primary)' }}>{formatMonthDisplay(filterMonth)}</span></h3>
+                        <h3 className="no-print" style={{ margin: 0 }}>Showing Leaves for: <span style={{ color: 'var(--primary)' }}>{filterYear}</span></h3>
                     </div>
 
                     <div style={{ overflowX: 'auto' }}>
@@ -163,7 +158,7 @@ export default function Leaves() {
                                 <tr>
                                     <th>Personnel Name</th>
                                     <th>Service #</th>
-                                    <th>Month</th>
+                                    <th>Year</th>
                                     <th>Notes</th>
                                     {user.role === 'Admin' && <th className="no-print" style={{ textAlign: 'right' }}>Controls</th>}
                                 </tr>
@@ -173,7 +168,7 @@ export default function Leaves() {
                                     <tr key={l.id}>
                                         <td style={{ fontWeight: '600' }}>{l.user.rank} {l.user.name}</td>
                                         <td>{l.user.service_number}</td>
-                                        <td>{formatMonthDisplay(l.month)}</td>
+                                        <td>{l.year}</td>
                                         <td style={{ color: 'var(--text-muted)' }}>{l.note || '-'}</td>
                                         {user.role === 'Admin' && (
                                             <td className="no-print" style={{ textAlign: 'right' }}>
@@ -186,7 +181,7 @@ export default function Leaves() {
                                 ))}
                                 {leaves.length === 0 && (
                                     <tr>
-                                        <td colSpan={user.role === 'Admin' ? 5 : 4} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No personnel on leave this month.</td>
+                                        <td colSpan={user.role === 'Admin' ? 5 : 4} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No personnel on leave for this year.</td>
                                     </tr>
                                 )}
                             </tbody>

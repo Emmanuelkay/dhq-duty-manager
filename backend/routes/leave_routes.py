@@ -8,10 +8,10 @@ def is_admin():
 
 @leave_bp.route('/', methods=['GET'])
 def get_leaves():
-    month_filter = request.args.get('month')
+    year_filter = request.args.get('year')
     query = Leave.query
-    if month_filter:
-        query = query.filter(Leave.month == month_filter)
+    if year_filter:
+        query = query.filter(Leave.year == year_filter)
         
     leaves = query.all()
     return jsonify([l.to_dict() for l in leaves]), 200
@@ -23,17 +23,17 @@ def create_leave():
         
     data = request.get_json()
     user_id = data.get('user_id')
-    month = data.get('month')
+    year = data.get('year')
     note = data.get('note', '')
     
-    if not user_id or not month:
+    if not user_id or not year:
         return jsonify({"error": "Missing required fields"}), 400
         
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
         
-    new_leave = Leave(user_id=user_id, month=month, note=note)
+    new_leave = Leave(user_id=user_id, year=year, note=note)
     db.session.add(new_leave)
     db.session.commit()
     
