@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import Navbar from './components/Navbar';
+import Passes from './pages/Passes';
+import Leaves from './pages/Leaves';
 
 import ChangePassword from './pages/ChangePassword';
 
@@ -51,6 +53,22 @@ function App() {
             element={
               <ProtectedRoute adminOnly={true}>
                 <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/passes"
+            element={
+              <ProtectedRoute>
+                <Passes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaves"
+            element={
+              <ProtectedRoute>
+                <Leaves />
               </ProtectedRoute>
             }
           />

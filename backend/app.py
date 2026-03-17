@@ -4,6 +4,8 @@ from models import db
 from routes.auth_routes import auth_bp
 from routes.personnel_routes import personnel_bp
 from routes.duty_routes import duty_bp
+from routes.pass_routes import pass_bp
+from routes.leave_routes import leave_bp
 
 def create_app():
     app = Flask(__name__)
@@ -21,6 +23,8 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(personnel_bp, url_prefix='/api/users')
     app.register_blueprint(duty_bp, url_prefix='/api/duties')
+    app.register_blueprint(pass_bp, url_prefix='/api/passes')
+    app.register_blueprint(leave_bp, url_prefix='/api/leaves')
     
     @app.before_request
     def check_password_change():

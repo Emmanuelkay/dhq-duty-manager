@@ -24,6 +24,12 @@ export default function Navbar() {
                 <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
                     Dashboard
                 </Link>
+                <Link to="/passes" className={`nav-link ${location.pathname === '/passes' ? 'active' : ''}`}>
+                    Passes
+                </Link>
+                <Link to="/leaves" className={`nav-link ${location.pathname === '/leaves' ? 'active' : ''}`}>
+                    Leaves
+                </Link>
                 {user?.role === 'Admin' && (
                     <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>
                         Admin

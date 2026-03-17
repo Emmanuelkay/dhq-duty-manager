@@ -43,3 +43,43 @@ class Duty(db.Model):
             'date': self.date.isoformat(),
             'user': self.user.to_dict() if self.user else None
         }
+
+class Pass(db.Model):
+    __tablename__ = 'passes'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    reason = db.Column(db.String(200), nullable=True)
+    
+    user = db.relationship('User', backref=db.backref('passes', lazy=True, cascade='all, delete-orphan'))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'start_date': self.start_date.isoformat(),
+            'end_date': self.end_date.isoformat(),
+            'reason': self.reason,
+            'user': self.user.to_dict() if self.user else None
+        }
+
+class Leave(db.Model):
+    __tablename__ = 'leaves'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    month = db.Column(db.String(7), nullable=False) # Format: YYYY-MM
+    note = db.Column(db.String(200), nullable=True)
+    
+    user = db.relationship('User', backref=db.backref('leaves', lazy=True, cascade='all, delete-orphan'))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'month': self.month,
+            'note': self.note,
+            'user': self.user.to_dict() if self.user else None
+        }
