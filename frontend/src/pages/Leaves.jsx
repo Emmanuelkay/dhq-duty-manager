@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+import { format, parseISO, addDays } from 'date-fns';
 import { CalendarDays, Trash2, Printer } from 'lucide-react';
 
 export default function Leaves() {
@@ -15,7 +15,7 @@ export default function Leaves() {
 
     // Form state
     const [leaveUserId, setLeaveUserId] = useState('');
-    const [leaveYear, setLeaveYear] = useState(currentYear);
+    const [leaveStartDate, setLeaveStartDate] = useState('');
     const [leaveNote, setLeaveNote] = useState('');
 
     useEffect(() => {
@@ -43,9 +43,16 @@ export default function Leaves() {
     const handleAddLeave = async (e) => {
         e.preventDefault();
         try {
+            const startDate = parseISO(leaveStartDate);
+            // Leave is typically 32 days
+            const endDate = addDays(startDate, 32);
+            const year = format(startDate, 'yyyy');
+
             const payload = {
                 user_id: leaveUserId,
-                year: leaveYear,
+                year: year,
+                start_date: format(startDate, 'yyyy-MM-dd'),
+                end_date: format(endDate, 'yyyy-MM-dd'),
                 note: leaveNote
             };
 
@@ -60,11 +67,12 @@ export default function Leaves() {
 
             toast.success('Leave record added');
             setLeaveUserId('');
+            setLeaveStartDate('');
             setLeaveNote('');
-            if (leaveYear === filterYear) {
+            if (year === filterYear) {
                 fetchLeaves();
             } else {
-                setFilterYear(leaveYear); // This will trigger fetchLeaves via useEffect
+                setFilterYear(year); // This will trigger fetchLeaves via useEffect
             }
         } catch (err) {
             toast.error(err.message || 'Failed to add leave');
@@ -121,7 +129,7 @@ export default function Leaves() {
                     <div className="glass-panel animate-fade-in no-print" style={{ padding: '2rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
                             <CalendarDays size={20} color="var(--primary)" />
-                            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Record Leave</h2>
+                            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Record Leave (32 Days)</h2>
                         </div>
 
                         <form onSubmit={handleAddLeave} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', border: '1px solid var(--glass-border)', flexWrap: 'wrap' }}>
@@ -134,13 +142,13 @@ export default function Leaves() {
                                     ))}
                                 </select>
                             </div>
-                            <div style={{ flex: '1 1 100px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Year</label>
-                                <input type="number" min="2000" max="2099" className="input-field" value={leaveYear} onChange={(e) => setLeaveYear(e.target.value)} required />
+                            <div style={{ flex: '1 1 150px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Start Date</label>
+                                <input type="date" className="input-field" value={leaveStartDate} onChange={(e) => setLeaveStartDate(e.target.value)} required />
                             </div>
                             <div style={{ flex: '2 1 200px' }}>
                                 <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Notes (Optional)</label>
-                                <input type="text" className="input-field" value={leaveNote} onChange={(e) => setLeaveNote(e.target.value)} placeholder="e.g. Annual leave" />
+                                <input type="text" className="input-field" value={leaveNote} onChange={(e) => setLeaveNote(e.target.value)} placeholder="e.g. Annual Leave" />
                             </div>
                             <button type="submit" className="btn btn-primary" style={{ padding: '0.8rem 1.5rem' }}>Record Leave</button>
                         </form>
@@ -158,17 +166,19 @@ export default function Leaves() {
                                 <tr>
                                     <th>Personnel Name</th>
                                     <th>Service #</th>
-                                    <th>Year</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
                                     <th>Notes</th>
                                     {user.role === 'Admin' && <th className="no-print" style={{ textAlign: 'right' }}>Controls</th>}
                                 </tr>
                             </thead>
                             <tbody>
-                                {leaves.map(l => (
+                                {leaves.sort((a, b) => b.start_date.localeCompare(a.start_date)).map(l => (
                                     <tr key={l.id}>
                                         <td style={{ fontWeight: '600' }}>{l.user.rank} {l.user.name}</td>
                                         <td>{l.user.service_number}</td>
-                                        <td>{l.year}</td>
+                                        <td>{format(parseISO(l.start_date), 'MMM d, yyyy')}</td>
+                                        <td style={{ color: 'var(--accent)', fontWeight: '500' }}>{format(parseISO(l.end_date), 'MMM d, yyyy')}</td>
                                         <td style={{ color: 'var(--text-muted)' }}>{l.note || '-'}</td>
                                         {user.role === 'Admin' && (
                                             <td className="no-print" style={{ textAlign: 'right' }}>
@@ -181,7 +191,7 @@ export default function Leaves() {
                                 ))}
                                 {leaves.length === 0 && (
                                     <tr>
-                                        <td colSpan={user.role === 'Admin' ? 5 : 4} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No personnel on leave for this year.</td>
+                                        <td colSpan={user.role === 'Admin' ? 6 : 5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No personnel on leave for this year.</td>
                                     </tr>
                                 )}
                             </tbody>

@@ -24,16 +24,18 @@ def create_leave():
     data = request.get_json()
     user_id = data.get('user_id')
     year = data.get('year')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
     note = data.get('note', '')
     
-    if not user_id or not year:
+    if not user_id or not year or not start_date or not end_date:
         return jsonify({"error": "Missing required fields"}), 400
         
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
         
-    new_leave = Leave(user_id=user_id, year=year, note=note)
+    new_leave = Leave(user_id=user_id, year=year, start_date=start_date, end_date=end_date, note=note)
     db.session.add(new_leave)
     db.session.commit()
     
