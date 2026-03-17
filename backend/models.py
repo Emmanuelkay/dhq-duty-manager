@@ -35,7 +35,7 @@ class Duty(db.Model):
     date = db.Column(db.Date, unique=True, nullable=False) # Only one duty per date
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
-    user = db.relationship('User', backref=db.backref('duties', lazy=True))
+    user = db.relationship('User', backref=db.backref('duties', lazy=True, cascade='all, delete-orphan'))
     
     def to_dict(self):
         return {
