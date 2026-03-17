@@ -89,7 +89,7 @@ export default function Leaves() {
 
     const formatMonthDisplay = (yyyyMM) => {
         if (!yyyyMM) return '';
-        const [year, month] = yyyMM.split('-');
+        const [year, month] = yyyyMM.split('-');
         const date = new Date(year, month - 1);
         return format(date, 'MMMM yyyy');
     };

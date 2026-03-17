@@ -39,8 +39,8 @@ export default function Passes() {
         e.preventDefault();
         try {
             const startDate = parseISO(passStartDate);
-            // Pass is 1 week (7 days)
-            const endDate = addDays(startDate, 7);
+            // Pass runs Monday to Friday (4 days after start)
+            const endDate = addDays(startDate, 4);
 
             const payload = {
                 user_id: passUserId,
