@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Users, UserPlus, Shield, Trash2, Calendar } from 'lucide-react';
+import { Users, UserPlus, Shield, Trash2, Calendar, Printer } from 'lucide-react';
 
 export default function Admin() {
     const { user } = useAuth();
@@ -154,16 +154,27 @@ export default function Admin() {
         }
     };
 
+    const handlePrint = () => {
+        window.print();
+    };
+
     return (
-        <div className="container">
-            <div style={{ marginBottom: '2.5rem', paddingTop: '1rem' }}>
-                <h1 style={{ margin: 0 }}>System Administration</h1>
-                <p style={{ color: 'var(--text-secondary)' }}>Manage personnel and operations schedules.</p>
+        <div className="container print-container">
+            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', paddingTop: '1rem' }}>
+                <div>
+                    <h1 style={{ margin: 0 }}>System Administration</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>Manage personnel and operations schedules.</p>
+                </div>
+            </div>
+
+            <div className="print-only" style={{ display: 'none', marginBottom: '2rem', textAlign: 'center' }}>
+                <h2>DHQ CSOC - Duty Schedule</h2>
+                <p>Generated on: {format(new Date(), 'PPp')}</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
                 {/* Personnel Management Section */}
-                <div className="glass-panel animate-fade-in" style={{ padding: '2rem' }}>
+                <div className="glass-panel animate-fade-in no-print" style={{ padding: '2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
                         <Users size={20} color="var(--primary)" />
                         <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Directory</h2>
@@ -221,13 +232,18 @@ export default function Admin() {
                 </div>
 
                 {/* Duty Scheduling Section */}
-                <div className="glass-panel animate-fade-in animate-delay-1" style={{ padding: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
-                        <Calendar size={20} color="var(--primary)" />
-                        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Schedule Assignments</h2>
+                <div className="glass-panel animate-fade-in animate-delay-1 print-unstyle" style={{ padding: '2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                            <Calendar size={20} color="var(--primary)" />
+                            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Schedule Assignments</h2>
+                        </div>
+                        <button onClick={handlePrint} className="btn btn-outline no-print" style={{ padding: '0.5rem 1rem', fontSize: '13px' }}>
+                            <Printer size={16} /> Print Schedule
+                        </button>
                     </div>
 
-                    <form onSubmit={handleAssignDuty} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
+                    <form onSubmit={handleAssignDuty} className="no-print" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
                         <div style={{ flex: 1 }}><label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Date</label><input type="date" className="input-field" value={dutyDate} onChange={(e) => setDutyDate(e.target.value)} required /></div>
                         <div style={{ flex: 2 }}>
                             <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Personnel</label>
@@ -247,12 +263,11 @@ export default function Admin() {
                                 <tr>
                                     <th>Date</th>
                                     <th>Assigned Personnel</th>
-                                    <th style={{ textAlign: 'right' }}>Controls</th>
+                                    <th className="no-print" style={{ textAlign: 'right' }}>Controls</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {duties.sort((a, b) => a.date > b.date ? 1 : -1).map(d => {
-                                    // Lock checks
                                     const dutyDateObj = new Date(d.date + 'T00:00:00');
                                     const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
                                     const isLocked = dutyDateObj < todayStart;
@@ -281,7 +296,7 @@ export default function Admin() {
                                                     </span>
                                                 )}
                                             </td>
-                                            <td style={{ textAlign: 'right' }}>
+                                            <td className="no-print" style={{ textAlign: 'right' }}>
                                                 {isLocked ? (
                                                     <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}>Locked</span>
                                                 ) : isEditing ? (

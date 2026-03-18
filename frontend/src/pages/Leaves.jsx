@@ -47,10 +47,12 @@ export default function Leaves() {
             // Leave is typically 32 days
             const endDate = addDays(startDate, 32);
             const year = format(startDate, 'yyyy');
+            const month = format(startDate, 'MMMM'); // Full month name
 
             const payload = {
                 user_id: leaveUserId,
                 year: year,
+                month: month,
                 start_date: format(startDate, 'yyyy-MM-dd'),
                 end_date: format(endDate, 'yyyy-MM-dd'),
                 note: leaveNote

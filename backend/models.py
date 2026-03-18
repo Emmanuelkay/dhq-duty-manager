@@ -71,6 +71,7 @@ class Leave(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     year = db.Column(db.String(4), nullable=False) # Format: YYYY
+    month = db.Column(db.String(20), nullable=True) # e.g. "January" or "01"
     start_date = db.Column(db.String(10), nullable=False) # Format: YYYY-MM-DD
     end_date = db.Column(db.String(10), nullable=False) # Format: YYYY-MM-DD
     note = db.Column(db.String(200), nullable=True)
@@ -82,6 +83,7 @@ class Leave(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'year': self.year,
+            'month': self.month,
             'start_date': self.start_date,
             'end_date': self.end_date,
             'note': self.note,
