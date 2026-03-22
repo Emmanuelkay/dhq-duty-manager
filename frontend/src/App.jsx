@@ -32,9 +32,11 @@ function App() {
     <AuthProvider>
       <Toaster position="top-right" toastOptions={{
         style: {
-          background: 'var(--bg-secondary)',
-          color: 'var(--text-primary)',
-          border: '1px solid var(--glass-border)',
+          background: 'var(--color-bg-surface)',
+          color: 'var(--color-text-main)',
+          border: '1px solid var(--color-border-glass)',
+          borderRadius: 'var(--radius-sharp)',
+          fontSize: '0.85rem'
         }
       }} />
       <Router>

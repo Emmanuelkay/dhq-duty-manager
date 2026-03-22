@@ -13,17 +13,17 @@ export default function ChangePassword() {
         e.preventDefault();
 
         if (newPassword !== confirmPassword) {
-            toast.error("Passwords do not match");
+            toast.error("Credentials mismatch");
             return;
         }
 
         if (newPassword === 'Changeme!') {
-            toast.error("You cannot use the default password");
+            toast.error("Default security token prohibited");
             return;
         }
 
         if (newPassword.length < 6) {
-            toast.error("Password must be at least 6 characters");
+            toast.error("Token must be at least 6 characters");
             return;
         }
 
@@ -32,26 +32,28 @@ export default function ChangePassword() {
         setLoading(false);
 
         if (!res.success) {
-            toast.error(res.error || "Failed to change password");
+            toast.error(res.error || "Security update failed");
         } else {
-            toast.success("Password secured successfully!");
+            toast.success("Security Credentials Updated");
         }
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', position: 'relative', zIndex: 10 }}>
-            <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '420px', padding: '3rem', margin: '2rem' }}>
-                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                        <ShieldAlert size={64} color="var(--warning)" style={{ filter: 'drop-shadow(0 0 15px rgba(245, 158, 11, 0.5))' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: 'var(--spacing-md)' }}>
+            <div className="glass-panel animate-entry" style={{ width: '100%', maxWidth: '400px', padding: 'var(--spacing-xl)', textAlign: 'center' }}>
+                <header style={{ marginBottom: 'var(--spacing-xl)' }}>
+                    <div style={{ display: 'inline-flex', padding: '12px', background: 'var(--color-bg-base)', borderRadius: 'var(--radius-sharp)', border: '1px solid var(--color-warning)', marginBottom: 'var(--spacing-md)' }}>
+                        <ShieldAlert size={40} color="var(--color-warning)" style={{ filter: 'drop-shadow(0 0 10px var(--color-warning))', opacity: 0.8 }} />
                     </div>
-                    <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem', fontWeight: '600', letterSpacing: '-0.02em', color: 'var(--warning)' }}>Action Required</h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>For your security, you must change the default password before accessing the dashboard.</p>
-                </div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px', color: 'var(--color-warning)' }}>
+                        Security Protocol
+                    </h1>
+                    <p className="text-muted" style={{ fontSize: '0.8rem' }}>Default credentials detected. Mandatory update required.</p>
+                </header>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="input-group animate-fade-in animate-delay-1">
-                        <label>New Password</label>
+                <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
+                    <div className="input-group">
+                        <label className="label">New Security Token</label>
                         <input
                             type="password"
                             className="input-field"
@@ -62,8 +64,8 @@ export default function ChangePassword() {
                         />
                     </div>
 
-                    <div className="input-group animate-fade-in animate-delay-2" style={{ marginBottom: '2rem' }}>
-                        <label>Confirm Password</label>
+                    <div className="input-group" style={{ marginBottom: 'var(--spacing-xl)' }}>
+                        <label className="label">Confirm Token</label>
                         <input
                             type="password"
                             className="input-field"
@@ -74,10 +76,16 @@ export default function ChangePassword() {
                         />
                     </div>
 
-                    <button type="submit" className="btn btn-primary animate-fade-in animate-delay-3" style={{ width: '100%', padding: '0.8rem', background: 'linear-gradient(135deg, var(--warning) 0%, #fbbf24 100%)', boxShadow: '0 8px 20px rgba(245, 158, 11, 0.3)' }} disabled={loading}>
-                        {loading ? 'Updating...' : 'Secure Account'}
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', background: 'var(--color-warning)', color: '#000', boxShadow: '0 0 15px var(--color-warning)' }} disabled={loading}>
+                        {loading ? 'Securing...' : 'Establish Secure Access'}
                     </button>
                 </form>
+
+                <footer style={{ marginTop: 'var(--spacing-xl)', opacity: 0.4 }}>
+                    <p style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        DHQ Network Security Directive 4-1
+                    </p>
+                </footer>
             </div>
         </div>
     );

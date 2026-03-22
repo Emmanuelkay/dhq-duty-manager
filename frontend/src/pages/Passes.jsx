@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { format, addDays, parseISO } from 'date-fns';
-import { Shield, Trash2, Printer, CalendarRange } from 'lucide-react';
+import { Shield, Trash2, Printer, CalendarRange, Plus } from 'lucide-react';
 
 export default function Passes() {
     const { user } = useAuth();
     const [passes, setPasses] = useState([]);
     const [users, setUsers] = useState([]);
+    const [isAdding, setIsAdding] = useState(false);
 
     // Form state
     const [passUserId, setPassUserId] = useState('');
@@ -39,7 +40,6 @@ export default function Passes() {
         e.preventDefault();
         try {
             const startDate = parseISO(passStartDate);
-            // Pass runs Monday to Friday (4 days after start)
             const endDate = addDays(startDate, 4);
 
             const payload = {
@@ -58,22 +58,23 @@ export default function Passes() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
 
-            toast.success('Pass record added');
+            toast.success('Pass record synchronized');
             setPassUserId('');
             setPassStartDate('');
             setPassReason('');
+            setIsAdding(false);
             fetchPasses();
         } catch (err) {
-            toast.error(err.message || 'Failed to add pass');
+            toast.error(err.message || 'Synchronization failed');
         }
     };
 
     const handleRemovePass = async (id) => {
-        if (!window.confirm("Remove this pass record?")) return;
+        if (!window.confirm("Purge this pass record?")) return;
         try {
             const res = await fetch(`/api/passes/${id}`, { method: 'DELETE' });
-            if (!res.ok) throw new Error('Failed to remove pass');
-            toast.success('Pass removed');
+            if (!res.ok) throw new Error('Failed to purge record');
+            toast.success('Record purged');
             fetchPasses();
         } catch (err) {
             toast.error(err.message);
@@ -85,86 +86,100 @@ export default function Passes() {
     };
 
     return (
-        <div className="container print-container">
-            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', paddingTop: '1rem' }}>
+        <div className="container" style={{ paddingTop: '80px' }}>
+            <div className="no-print animate-entry" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--spacing-xl)' }}>
                 <div>
-                    <h1 style={{ margin: 0 }}>Pass Register</h1>
-                    <p style={{ color: 'var(--text-secondary)' }}>Log of personnel on 1-week pass.</p>
+                    <h1 style={{ fontSize: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pass Register</h1>
+                    <p className="text-muted" style={{ fontSize: '0.85rem' }}>Electronic log of personnel on 1-week operational pass.</p>
                 </div>
-                <button onClick={handlePrint} className="btn btn-outline">
-                    <Printer size={16} /> Print Record
-                </button>
+                <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                    {user.role === 'Admin' && (
+                        <button onClick={() => setIsAdding(!isAdding)} className="btn btn-primary">
+                            <Plus size={16} /> {isAdding ? 'Cancel' : 'New Entry'}
+                        </button>
+                    )}
+                    <button onClick={handlePrint} className="btn btn-ghost">
+                        <Printer size={16} /> Print
+                    </button>
+                </div>
             </div>
 
-            <div className="print-only" style={{ display: 'none', marginBottom: '2rem', textAlign: 'center' }}>
-                <h2>DHQ CSOC - Pass Record</h2>
-                <p>Generated on: {format(new Date(), 'PPp')}</p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-                {user.role === 'Admin' && (
-                    <div className="glass-panel animate-fade-in no-print" style={{ padding: '2rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
-                            <CalendarRange size={20} color="var(--primary)" />
-                            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Record New Pass</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+                {isAdding && user.role === 'Admin' && (
+                    <div className="glass-panel animate-entry no-print">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
+                            <CalendarRange size={18} color="var(--color-accent)" />
+                            <h2 style={{ fontSize: '0.9rem', textTransform: 'uppercase' }}>Create Pass Record</h2>
                         </div>
 
-                        <form onSubmit={handleAddPass} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', border: '1px solid var(--glass-border)', flexWrap: 'wrap' }}>
-                            <div style={{ flex: '1 1 200px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Personnel</label>
+                        <form onSubmit={handleAddPass} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)', alignItems: 'end' }}>
+                            <div className="input-group">
+                                <label className="label">Personnel</label>
                                 <select className="input-field" value={passUserId} onChange={(e) => setPassUserId(e.target.value)} required>
-                                    <option value="" style={{ color: '#000' }}>Select Personnel...</option>
+                                    <option value="" style={{ background: 'var(--color-bg-base)' }}>Select User...</option>
                                     {users.map(u => (
-                                        <option key={u.id} value={u.id} style={{ color: '#000' }}>{u.rank} {u.name} ({u.service_number})</option>
+                                        <option key={u.id} value={u.id} style={{ background: 'var(--color-bg-base)' }}>{u.rank} {u.name} ({u.service_number})</option>
                                     ))}
                                 </select>
                             </div>
-                            <div style={{ flex: '1 1 150px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Start Date</label>
+                            <div className="input-group">
+                                <label className="label">Start Date</label>
                                 <input type="date" className="input-field" value={passStartDate} onChange={(e) => setPassStartDate(e.target.value)} required />
                             </div>
-                            <div style={{ flex: '2 1 200px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', textTransform: 'uppercase' }}>Reason / Notes (Optional)</label>
-                                <input type="text" className="input-field" value={passReason} onChange={(e) => setPassReason(e.target.value)} placeholder="e.g. Compassionate" />
+                            <div className="input-group">
+                                <label className="label">Notes / Justification</label>
+                                <input type="text" className="input-field" value={passReason} onChange={(e) => setPassReason(e.target.value)} placeholder="Reason for pass" />
                             </div>
-                            <button type="submit" className="btn btn-primary" style={{ padding: '0.8rem 1.5rem' }}>Record Pass</button>
+                            <button type="submit" className="btn btn-primary" style={{ height: '42px' }}>Initialize</button>
                         </form>
                     </div>
                 )}
 
-                <div className="glass-panel animate-fade-in animate-delay-1 print-unstyle" style={{ padding: '2rem' }}>
+                <div className="glass-panel animate-entry" style={{ padding: 0, overflow: 'hidden' }}>
                     <div style={{ overflowX: 'auto' }}>
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Personnel Name</th>
-                                    <th>Service #</th>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Notes</th>
-                                    {user.role === 'Admin' && <th className="no-print" style={{ textAlign: 'right' }}>Controls</th>}
+                                    <th>Personnel Entity</th>
+                                    <th>Service ID</th>
+                                    <th>Commence</th>
+                                    <th>Terminate</th>
+                                    <th>Status / Notes</th>
+                                    {user.role === 'Admin' && <th className="no-print" style={{ textAlign: 'center' }}>Ops</th>}
                                 </tr>
                             </thead>
                             <tbody>
-                                {passes.sort((a, b) => b.start_date.localeCompare(a.start_date)).map(p => (
-                                    <tr key={p.id}>
-                                        <td style={{ fontWeight: '600' }}>{p.user.rank} {p.user.name}</td>
-                                        <td>{p.user.service_number}</td>
-                                        <td>{format(parseISO(p.start_date), 'MMM d, yyyy')}</td>
-                                        <td style={{ color: 'var(--accent)', fontWeight: '500' }}>{format(parseISO(p.end_date), 'MMM d, yyyy')}</td>
-                                        <td style={{ color: 'var(--text-muted)' }}>{p.reason || '-'}</td>
-                                        {user.role === 'Admin' && (
-                                            <td className="no-print" style={{ textAlign: 'right' }}>
-                                                <button onClick={() => handleRemovePass(p.id)} className="btn btn-danger" style={{ padding: '0.3rem 0.8rem', fontSize: '12px' }}>
-                                                    <Trash2 size={12} />
-                                                </button>
+                                {passes.sort((a, b) => b.start_date.localeCompare(a.start_date)).map(p => {
+                                    const isExpired = new Date(p.end_date) < new Date();
+                                    return (
+                                        <tr key={p.id}>
+                                            <td style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>{p.user.rank} {p.user.name.toUpperCase()}</td>
+                                            <td style={{ fontFamily: 'monospace', color: 'var(--color-accent)' }}>{p.user.service_number}</td>
+                                            <td>{format(parseISO(p.start_date), 'dd MMM yyyy').toUpperCase()}</td>
+                                            <td style={{ color: isExpired ? 'var(--color-danger)' : 'var(--color-success)', fontWeight: '600' }}>
+                                                {format(parseISO(p.end_date), 'dd MMM yyyy').toUpperCase()}
                                             </td>
-                                        )}
-                                    </tr>
-                                ))}
+                                            <td>
+                                                <span className={`badge ${isExpired ? 'badge-danger' : 'badge-success'}`}>
+                                                    {isExpired ? 'Expired' : 'Active'}
+                                                </span>
+                                                <span className="text-muted" style={{ marginLeft: '8px', fontSize: '0.75rem' }}>{p.reason}</span>
+                                            </td>
+                                            {user.role === 'Admin' && (
+                                                <td className="no-print" style={{ textAlign: 'center' }}>
+                                                    <button onClick={() => handleRemovePass(p.id)} className="btn-ghost" style={{ padding: '6px', border: 'none' }}>
+                                                        <Trash2 size={14} color="var(--color-danger)" />
+                                                    </button>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    );
+                                })}
                                 {passes.length === 0 && (
                                     <tr>
-                                        <td colSpan={user.role === 'Admin' ? 6 : 5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No pass records found.</td>
+                                        <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                                            No active pass records in database.
+                                        </td>
                                     </tr>
                                 )}
                             </tbody>

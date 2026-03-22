@@ -20,40 +20,40 @@ export default function Login() {
         const res = await login(serviceNumber, password);
         setLoading(false);
         if (!res.success) {
-            toast.error(res.error || "Login failed");
+            toast.error(res.error || "Authentication failed");
         } else {
-            toast.success("Welcome back!");
+            toast.success("Terminal Access Granted");
         }
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', position: 'relative', zIndex: 10 }}>
-            <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '420px', padding: '3rem', margin: '2rem' }}>
-                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                    <img src="/dhq-logo.jpg" alt="DHQ Logo" style={{ height: '64px', borderRadius: '12px', margin: '0 auto 1.5rem', display: 'block' }} />
-                    <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem', fontWeight: '600', letterSpacing: '-0.02em', color: 'var(--text-main)' }}>Duty Manager</h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>Sign in to manage the operational roster.</p>
-                </div>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: 'var(--spacing-md)' }}>
+            <div className="glass-panel animate-entry" style={{ width: '100%', maxWidth: '400px', padding: 'var(--spacing-xl)', textAlign: 'center' }}>
+                <header style={{ marginBottom: 'var(--spacing-xl)' }}>
+                    <div style={{ display: 'inline-flex', padding: '12px', background: 'var(--color-bg-base)', borderRadius: 'var(--radius-sharp)', border: '1px solid var(--color-accent-20)', marginBottom: 'var(--spacing-md)' }}>
+                        <Shield size={40} color="var(--color-accent)" style={{ filter: 'drop-shadow(0 0 10px var(--color-accent-glow))' }} />
+                    </div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
+                        CSOC Node
+                    </h1>
+                    <p className="text-muted" style={{ fontSize: '0.8rem' }}>Personnel Deployment & Duty Management</p>
+                </header>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="input-group animate-fade-in animate-delay-1">
-                        <label>Service Number</label>
+                <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
+                    <div className="input-group">
+                        <label className="label">Service Identifier</label>
                         <input
                             type="text"
                             className="input-field"
                             value={serviceNumber}
                             onChange={(e) => setServiceNumber(e.target.value)}
-                            placeholder="e.g. admin"
+                            placeholder="Enter Service ID"
                             required
                         />
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                        <Shield size={48} color="var(--primary)" style={{ filter: 'drop-shadow(0 0 15px var(--primary-glow))' }} />
-                    </div>
-
-                    <div className="input-group animate-fade-in animate-delay-2" style={{ marginBottom: '2rem' }}>
-                        <label>Password</label>
+                    <div className="input-group" style={{ marginBottom: 'var(--spacing-xl)' }}>
+                        <label className="label">Security Token</label>
                         <input
                             type="password"
                             className="input-field"
@@ -64,10 +64,16 @@ export default function Login() {
                         />
                     </div>
 
-                    <button type="submit" className="btn btn-primary animate-fade-in animate-delay-3" style={{ width: '100%', padding: '0.8rem' }} disabled={loading}>
-                        {loading ? 'Signing in...' : 'Sign In'}
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px' }} disabled={loading}>
+                        {loading ? 'Authenticating...' : 'Establish Connection'}
                     </button>
                 </form>
+
+                <footer style={{ marginTop: 'var(--spacing-xl)', opacity: 0.4 }}>
+                    <p style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Restricted Access System &copy; {new Date().getFullYear()} DHQ
+                    </p>
+                </footer>
             </div>
         </div>
     );
