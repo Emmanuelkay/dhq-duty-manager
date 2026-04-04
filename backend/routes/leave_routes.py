@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify, session
 from models import db, Leave, User
+from middleware import role_required
+from utils import validate_input
 
 leave_bp = Blueprint('leave_bp', __name__)
 
-def is_admin():
-    return session.get('role') == 'Admin'
-
 @leave_bp.route('/', methods=['GET'])
+@role_required(['admin', 'duty_officer', 'viewer'])
 def get_leaves():
     year_filter = request.args.get('year')
     month_filter = request.args.get('month')
@@ -20,11 +20,22 @@ def get_leaves():
     return jsonify([l.to_dict() for l in leaves]), 200
 
 @leave_bp.route('/', methods=['POST'])
+@role_required(['admin', 'duty_officer'])
 def create_leave():
-    if not is_admin():
-        return jsonify({"error": "Unauthorized"}), 403
         
     data = request.get_json()
+    schema = {
+        'user_id': {'type': 'int', 'required': True},
+        'year': {'type': 'string', 'required': True},
+        'month': {'type': 'string'},
+        'start_date': {'type': 'date', 'required': True},
+        'end_date': {'type': 'date', 'required': True},
+        'note': {'type': 'string'}
+    }
+    errors = validate_input(data, schema)
+    if errors:
+        return jsonify({"error": "Validation failed", "details": errors}), 400
+        
     user_id = data.get('user_id')
     year = data.get('year')
     month = data.get('month')
@@ -46,9 +57,8 @@ def create_leave():
     return jsonify(new_leave.to_dict()), 201
 
 @leave_bp.route('/<int:leave_id>', methods=['DELETE'])
+@role_required('admin')
 def delete_leave(leave_id):
-    if not is_admin():
-        return jsonify({"error": "Unauthorized"}), 403
         
     leave_record = Leave.query.get(leave_id)
     if not leave_record:

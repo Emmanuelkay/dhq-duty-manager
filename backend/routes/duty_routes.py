@@ -1,24 +1,31 @@
 from flask import Blueprint, request, jsonify, session
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import db, Duty, User
 from sqlalchemy.exc import IntegrityError
+from middleware import role_required
+from utils import validate_input
 
 duty_bp = Blueprint('duty_bp', __name__)
 
-def is_admin():
-    return session.get('role') == 'Admin'
-
 @duty_bp.route('/', methods=['GET'])
+@role_required(['admin', 'duty_officer', 'viewer'])
 def get_duties():
     duties = Duty.query.all()
     return jsonify([duty.to_dict() for duty in duties]), 200
 
 @duty_bp.route('/', methods=['POST'])
+@role_required('admin')
 def assign_duty():
-    if not is_admin():
-        return jsonify({"error": "Unauthorized"}), 403
         
     data = request.get_json()
+    schema = {
+        'date': {'type': 'date', 'required': True},
+        'user_id': {'type': 'int', 'required': True}
+    }
+    errors = validate_input(data, schema)
+    if errors:
+        return jsonify({"error": "Validation failed", "details": errors}), 400
+        
     date_str = data.get('date')
     user_id = data.get('user_id')
     
@@ -46,17 +53,18 @@ def assign_duty():
     return jsonify(new_duty.to_dict()), 201
 
 @duty_bp.route('/<int:duty_id>', methods=['PUT', 'DELETE'])
+@role_required('admin')
 def update_or_remove_duty(duty_id):
-    if not is_admin():
-        return jsonify({"error": "Unauthorized"}), 403
         
     duty = Duty.query.get(duty_id)
     if not duty:
         return jsonify({"error": "Duty not found"}), 404
 
-    # Enforce Lockdown: if the duty date has passed (strictly earlier than today)
-    if duty.date < datetime.today().date():
-        return jsonify({"error": "Cannot modify or delete a duty that has already passed"}), 400
+    # Enforce Lockdown: if the duty date has passed (strictly earlier than yesterday)
+    # This provides a 24h grace period for last-minute corrections
+    yesterday = (datetime.today() - timedelta(days=1)).date()
+    if duty.date < yesterday:
+        return jsonify({"error": "Cannot modify or delete a duty that has already passed more than 24 hours ago"}), 400
 
     if request.method == 'DELETE':
         db.session.delete(duty)
@@ -65,6 +73,14 @@ def update_or_remove_duty(duty_id):
 
     if request.method == 'PUT':
         data = request.get_json()
+        schema = {
+            'date': {'type': 'date'},
+            'user_id': {'type': 'int'}
+        }
+        errors = validate_input(data, schema)
+        if errors:
+            return jsonify({"error": "Validation failed", "details": errors}), 400
+            
         new_user_id = data.get('user_id')
         new_date_str = data.get('date')
         

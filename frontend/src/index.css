@@ -592,10 +592,11 @@ h4 {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(6, 1fr) !important;
-  border: 1px solid var(--color-separator);
-  background: var(--color-bg-base);
-  border-radius: var(--radius-md);
+  grid-template-rows: repeat(6, 1fr);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  border: none;
+  min-height: calc(100vh - 120px);
   overflow: hidden;
 }
 
@@ -714,88 +715,23 @@ h4 {
   background: rgba(255, 165, 0, 0.7);
 }
 
-/* Dashboard Grid Layout */
-.dashboard-grid {
+/* Dashboard Layout - Permanent Unified Grid */
+.dashboard-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  grid-template-rows: auto;
-  gap: 16px;
-  align-items: start;
-  transition: grid-template-columns 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.dashboard-grid.roster-active {
   grid-template-columns: 1fr 320px;
+  gap: 16px;
+  padding: 16px 24px;
+  min-height: calc(100vh - 52px);
+  align-items: start;
 }
 
-/* CVE Feed Styling Refinements */
-.cve-feed {
-  background: var(--color-bg-surface);
-  border-radius: var(--radius-lg);
-  margin-top: 16px;
-  overflow: hidden;
-  border: 1px solid var(--color-separator);
-  transition: opacity 200ms ease-out;
-}
-
-.cve-feed.compact {
-  opacity: 0.85;
-}
-
-.cve-feed.dominant {
-  margin-top: 0;
-}
-
-.cve-summary-bar {
-  padding: 8px 16px;
+.grid-left-col, .grid-right-col {
+  height: 100%;
   display: flex;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid var(--color-separator);
+  flex-direction: column;
 }
 
-.cve-footer {
-  padding: 12px 16px;
-  display: flex;
-  justify-content: flex-end;
-  background: rgba(255, 255, 255, 0.01);
-}
 
-.cve-feed__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-separator);
-}
-
-.cve-header-title {
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  color: var(--color-text-tertiary);
-  text-transform: uppercase;
-}
-
-.cve-count-badge {
-  background: rgba(255, 69, 58, 0.12);
-  color: #ff6b6b;
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-
-.cve-row {
-  display: grid;
-  grid-template-columns: 120px 140px minmax(0, 1fr) 100px;
-  align-items: center;
-  gap: 12px;
-  padding: 0 16px;
-  height: 44px;
-  overflow: hidden;
-  border-bottom: 1px solid var(--color-separator);
-  cursor: pointer;
-  transition: background 150ms ease-out;
-}
 
 .cve-row:hover {
   background: rgba(255, 255, 255, 0.025);

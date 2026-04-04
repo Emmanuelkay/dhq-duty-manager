@@ -2,14 +2,12 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, isToday, startOfDay } from 'date-fns';
 import { ChevronLeft, ChevronRight, User, Users, ShieldAlert, Calendar } from 'lucide-react';
-import CVEFeed from '../components/CVEFeed';
 
 export default function Dashboard() {
     const { user } = useAuth();
     const [duties, setDuties] = useState([]);
     const [currentDate, setCurrentDate] = useState(new Date());
     const [holidays, setHolidays] = useState([]);
-    const [rosterActive, setRosterActive] = useState(false);
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const holidaysCache = useRef(new Map());
@@ -66,15 +64,7 @@ export default function Dashboard() {
     const [counts, setCounts] = useState({ total: 0, avg: 0 });
     const [now, setNow] = useState(new Date());
 
-    // Auto-revert to CVE Mode after 90s inactivity
-    useEffect(() => {
-        if (!rosterActive) return;
-        const timer = setTimeout(() => {
-            setRosterActive(false);
-            setSelectedDate(new Date());
-        }, 90000);
-        return () => clearTimeout(timer);
-    }, [rosterActive, selectedDate]);
+
 
     // Window Resize Hook
     useEffect(() => {
@@ -138,7 +128,6 @@ export default function Dashboard() {
 
     // Handle Date Selection with Panel Refresh
     const handleDateSelect = (day) => {
-        setRosterActive(true);
         if (format(day, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')) {
             if (windowWidth < 1280) setIsSidebarOpen(true);
             return;
@@ -241,13 +230,10 @@ export default function Dashboard() {
                 </div>
             </header>
 
-            <div className={`dashboard-grid ${rosterActive ? 'roster-active' : ''}`} style={{ flex: 1, minWidth: 0 }}>
-                {/* Stage 1: CVE dominant (left) or Calendar Expansion (left) */}
+            <div className="dashboard-layout" style={{ flex: 1, minWidth: 0 }}>
+                {/* Left Column: Permanent Calendar */}
                 <div className="grid-left-col">
-                    {!rosterActive ? (
-                        <CVEFeed mode="dominant" />
-                    ) : (
-                        <main className="glass-panel animate-scale-in" style={{ padding: 0, border: '1px solid var(--color-separator)', background: 'var(--color-bg-surface)', animationDelay: '200ms', display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}>
+                    <main className="glass-panel animate-scale-in" style={{ padding: 0, border: '1px solid var(--color-separator)', background: 'var(--color-bg-surface)', animationDelay: '200ms', display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}>
                             <div style={{ 
                                 display: 'flex', 
                                 justifyContent: 'space-between', 
@@ -259,19 +245,6 @@ export default function Dashboard() {
                                     <div style={{ fontSize: '1.1rem', fontWeight: '600', color: 'white' }}>
                                         {format(currentDate, 'MMMM yyyy')}
                                     </div>
-                                    {rosterActive && (
-                                        <button className="roster-close-btn" onClick={(e) => {
-                                            e.stopPropagation();
-                                            setRosterActive(false);
-                                            setSelectedDate(new Date());
-                                        }}>
-                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                                <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" 
-                                                      strokeWidth="1.5" strokeLinecap="round"/>
-                                            </svg>
-                                            <span>Close Roster</span>
-                                        </button>
-                                    )}
                                 </div>
                                 <div style={{ display: 'flex', gap: '4px' }}>
                                     <button onClick={() => handleMonthNav(-1)} className="cal-nav-btn">
@@ -355,104 +328,51 @@ export default function Dashboard() {
                                 ))}
                             </div>
                         </main>
-                    )}
                 </div>
 
-                {/* Stage 2: Calendar Compact (right) or Detail Panel (right) */}
+                {/* Stage 2: Detail Panel (right) */}
                 <div className="grid-right-col">
-                    {!rosterActive ? (
-                        <div className="compact-calendar-container calendar-compact glass-panel animate-fade-right" style={{ border: '1px solid var(--color-separator)', height: '100%' }}>
-                            <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-separator)' }}>
-                                <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'white' }}>{format(currentDate, 'MMM yyyy')}</span>
-                                <div style={{ display: 'flex', gap: '4px' }}>
-                                    <button onClick={(e) => { e.stopPropagation(); handleMonthNav(-1); }} className="cal-nav-btn"><ChevronLeft size={14} /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleMonthNav(1); }} className="cal-nav-btn"><ChevronRight size={14} /></button>
-                                </div>
+                    <aside className="detail-panel-container glass-panel animate-fade-right" style={{ border: '1px solid var(--color-separator)', height: '100%', opacity: isRefreshing ? 0 : 1, transition: 'opacity 180ms ease-in' }}>
+                        <div style={{ padding: '24px 24px 16px', borderBottom: '1px solid var(--color-separator)' }}>
+                            <span style={{ fontSize: '0.62rem', fontWeight: '500', color: 'var(--color-text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Selected Date</span>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '600', color: 'white', margin: '4px 0 0' }}>{format(selectedDate, 'EEEE, d MMM')}</h3>
+                        </div>
+                        
+                        <div style={{ flex: 1, padding: '20px 24px', overflowY: 'auto' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--color-accent)' }}></div>
+                                <span style={{ fontSize: '0.62rem', fontWeight: '500', color: 'var(--color-text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Assigned Personnel ({selectedDayDuties.length})</span>
                             </div>
-                            <div className="calendar-grid compact" style={{ gridTemplateColumns: 'repeat(7, 1fr)', padding: '4px' }}>
-                                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                                    <div key={d} style={{ textAlign: 'center', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', padding: '4px 0' }}>{d}</div>
-                                ))}
-                                {paddingDaysBefore.map(i => <div key={i} />)}
-                                {daysInMonth.map((day, idx) => {
-                                    const dateStr = format(day, 'yyyy-MM-dd');
-                                    const dayDuties = duties.filter(d => d.date.startsWith(dateStr)) || [];
-                                    const isTodayDate = dateStr === todayStr;
-                                    const isSelected = format(day, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-                                    return (
-                                        <div 
-                                            key={dateStr}
-                                            className={`calendar-cell compact ${isSelected ? 'selected' : ''} ${isTodayDate ? 'today' : ''}`}
-                                            onClick={() => handleDateSelect(day)}
-                                            style={{ cursor: 'pointer', position: 'relative' }}
-                                        >
-                                            <div className="date-num" style={{ fontSize: '0.65rem' }}>{format(day, 'd')}</div>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '2px' }}>
-                                                {dayDuties.map((duty, dIdx) => (
-                                                    <div key={dIdx} className="chip--compact">
-                                                        <div className="avatar-circle">
-                                                            {getInitial(duty.user?.name || duty.personnel_name)}
-                                                        </div>
-                                                        <div className="chip__tooltip">
-                                                            {duty.user?.name || duty.personnel_name} • {duty.role}
-                                                        </div>
-                                                    </div>
-                                                ))}
+                            {selectedDayDuties.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    {selectedDayDuties.map((duty, idx) => (
+                                        <div key={idx} className="animate-fade-up" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', margin: '0 -16px', borderRadius: '8px', animationDelay: `${idx * 50}ms` }}>
+                                            <div className="avatar-circle" style={{ width: '28px', height: '28px', fontSize: '0.75rem' }}>{getInitial(duty.user?.name || duty.personnel_name)}</div>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'white' }}>{duty.user?.name || duty.personnel_name}</span>
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{duty.role} • <span style={{ color: 'var(--color-accent)', opacity: 0.8 }}>ID: {duty.user?.service_number || duty.service_id}</span></span>
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ padding: '40px 0', textAlign: 'center', color: 'rgba(255,255,255,0.2)' }}>No assignments for this date</div>
+                            )}
+                        </div>
+
+                        <div style={{ padding: '24px', borderTop: '1px solid var(--color-separator)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>Monthly Total</span>
+                                <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'white' }}>{counts.total}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>Avg Deployment</span>
+                                <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'white' }}>{counts.avg}/d</span>
                             </div>
                         </div>
-                    ) : (
-                        <aside className="detail-panel-container glass-panel animate-fade-right" style={{ border: '1px solid var(--color-separator)', height: '100%', opacity: isRefreshing ? 0.5 : 1 }}>
-                            <div style={{ padding: '24px 24px 16px', borderBottom: '1px solid var(--color-separator)' }}>
-                                <span style={{ fontSize: '0.62rem', fontWeight: '500', color: 'var(--color-text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Selected Date</span>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: '600', color: 'white', margin: '4px 0 0' }}>{format(selectedDate, 'EEEE, d MMM')}</h3>
-                            </div>
-                            
-                            <div style={{ flex: 1, padding: '20px 24px', overflowY: 'auto' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                                    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--color-accent)' }}></div>
-                                    <span style={{ fontSize: '0.62rem', fontWeight: '500', color: 'var(--color-text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Assigned Personnel ({selectedDayDuties.length})</span>
-                                </div>
-                                {selectedDayDuties.length > 0 ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                        {selectedDayDuties.map((duty, idx) => (
-                                            <div key={idx} className="animate-fade-up" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', margin: '0 -16px', borderRadius: '8px', animationDelay: `${idx * 50}ms` }}>
-                                                <div className="avatar-circle" style={{ width: '28px', height: '28px', fontSize: '0.75rem' }}>{getInitial(duty.user?.name || duty.personnel_name)}</div>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'white' }}>{duty.user?.name || duty.personnel_name}</span>
-                                                    <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{duty.role} • <span style={{ color: 'var(--color-accent)', opacity: 0.8 }}>ID: {duty.user?.service_number || duty.service_id}</span></span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div style={{ padding: '40px 0', textAlign: 'center', color: 'rgba(255,255,255,0.2)' }}>No assignments for this date</div>
-                                )}
-                            </div>
-
-                            <div style={{ padding: '24px', borderTop: '1px solid var(--color-separator)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>Monthly Total</span>
-                                    <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'white' }}>{counts.total}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>Avg Deployment</span>
-                                    <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'white' }}>{counts.avg}/d</span>
-                                </div>
-                            </div>
-                        </aside>
-                    )}
+                    </aside>
                 </div>
             </div>
-
-            {rosterActive && (
-                <div style={{ marginTop: '16px' }} className="animate-fade-up">
-                    <CVEFeed mode="compact" />
-                </div>
-            )}
 
             {/* Overlay background for mobile sidebar */}
             {isMobile && isSidebarOpen && (

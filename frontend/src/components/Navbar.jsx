@@ -19,10 +19,10 @@ export default function Navbar() {
 
     return (
         <nav className="navbar animate-fade-in" style={{ 
-            height: '56px', 
-            background: 'var(--color-bg-surface)', 
+            height: '52px', 
+            background: 'var(--color-bg-base)', 
             backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid var(--color-separator)',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
             position: 'fixed',
             top: 0,
             left: 0,
@@ -31,7 +31,8 @@ export default function Navbar() {
             display: 'flex',
             alignItems: 'center',
             padding: '0 var(--spacing-lg)',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
         }}>
             <style>{`
                 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -82,7 +83,7 @@ export default function Navbar() {
                     <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em', fontWeight: '500' }}>PERSONNEL</span>
                 </div>
                 
-                <div style={{ display: 'flex', marginLeft: 'var(--spacing-md)', height: '56px', position: 'relative' }}>
+                <div style={{ display: 'flex', marginLeft: 'var(--spacing-md)', height: '52px', position: 'relative' }}>
                     {links.map((link) => (
                         <Link 
                             key={link.path}

@@ -1,33 +1,56 @@
-from flask import Blueprint, request, jsonify, session
-from models import User
+from flask import Blueprint, request, jsonify, session, current_app
+from models import User, db
+from middleware import role_required
+import logging
+from datetime import datetime
 
 auth_bp = Blueprint('auth_bp', __name__)
 
+# Configure logging for security events
+security_logger = logging.getLogger('security')
+security_logger.setLevel(logging.INFO)
+if not security_logger.handlers:
+    handler = logging.FileHandler('security.log')
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    security_logger.addHandler(handler)
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    service_number = data.get('service_number')
-    password = data.get('password')
-    
-    if not service_number or not password:
-        return jsonify({"error": "Service Number and Password are required."}), 400
+    # Apply rate limiting from current_app.limiter
+    # Rate limit: 5 per 15 minutes per IP
+    @current_app.limiter.limit("5 per 15 minutes")
+    def rate_limited_login():
+        data = request.get_json()
+        service_number = data.get('service_number')
+        password = data.get('password')
+        ip = request.remote_addr
         
-    user = User.query.filter_by(service_number=service_number).first()
-    if user and user.check_password(password):
-        requires_password_change = False
-        if user.service_number != 'admin' and password == 'Changeme!':
-            requires_password_change = True
+        if not service_number or not password:
+            return jsonify({"error": "Service Number and Password are required."}), 400
             
-        session['user_id'] = user.id
-        session['role'] = user.role
-        session['requires_password_change'] = requires_password_change
+        user = User.query.filter_by(service_number=service_number).first()
         
-        user_data = user.to_dict()
-        user_data['requires_password_change'] = requires_password_change
-        
-        return jsonify({"message": "Login successful", "user": user_data}), 200
-        
-    return jsonify({"error": "Invalid service number or password."}), 401
+        if user and user.check_password(password):
+            requires_password_change = False
+            if user.service_number != 'admin' and password == 'Changeme!':
+                requires_password_change = True
+                
+            session['user_id'] = user.id
+            session['role'] = user.role
+            session['requires_password_change'] = requires_password_change
+            session['login_time'] = datetime.utcnow().timestamp()
+            
+            security_logger.info(f"LOGIN_SUCCESS: User {service_number} from IP {ip}")
+            
+            user_data = user.to_dict()
+            user_data['requires_password_change'] = requires_password_change
+            return jsonify({"message": "Login successful", "user": user_data}), 200
+            
+        # Log failure with details
+        security_logger.warning(f"LOGIN_FAILURE: Attempted User {service_number} from IP {ip}")
+        return jsonify({"error": "Invalid service number or password."}), 401
+
+    return rate_limited_login()
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
@@ -50,6 +73,7 @@ def get_current_user():
     return jsonify({"error": "User not found."}), 404
 
 @auth_bp.route('/change-password', methods=['POST'])
+@role_required(['admin', 'duty_officer', 'viewer'])
 def change_password():
     user_id = session.get('user_id')
     if not user_id:

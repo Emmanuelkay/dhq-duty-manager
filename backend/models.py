@@ -11,7 +11,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     rank = db.Column(db.String(50), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(20), nullable=False, default='User') # 'Admin' or 'User'
+    role = db.Column(db.String(20), nullable=False, default='viewer') # 'admin', 'duty_officer', 'viewer'
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -30,9 +30,10 @@ class User(db.Model):
 
 class Duty(db.Model):
     __tablename__ = 'duties'
+    __table_args__ = (db.UniqueConstraint('date', 'user_id', name='uq_duty_date_user'),)
     
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, unique=True, nullable=False) # Only one duty per date
+    date = db.Column(db.Date, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     user = db.relationship('User', backref=db.backref('duties', lazy=True, cascade='all, delete-orphan'))
@@ -41,6 +42,7 @@ class Duty(db.Model):
         return {
             'id': self.id,
             'date': self.date.isoformat(),
+            'user_id': self.user_id,
             'user': self.user.to_dict() if self.user else None
         }
 

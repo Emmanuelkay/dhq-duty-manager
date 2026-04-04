@@ -17,7 +17,7 @@ function ProtectedRoute({ children, adminOnly = false }) {
   if (loading) return <div className="container">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
   if (user.requires_password_change) return <ChangePassword />;
-  if (adminOnly && user.role !== 'Admin') return <Navigate to="/" replace />;
+  if (adminOnly && user.role?.toLowerCase() !== 'admin') return <Navigate to="/" replace />;
 
   return (
     <>

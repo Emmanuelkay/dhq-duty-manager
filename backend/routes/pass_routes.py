@@ -1,23 +1,32 @@
 from flask import Blueprint, request, jsonify, session
 from datetime import datetime
 from models import db, Pass, User
+from middleware import role_required
+from utils import validate_input
 
 pass_bp = Blueprint('pass_bp', __name__)
 
-def is_admin():
-    return session.get('role') == 'Admin'
-
 @pass_bp.route('/', methods=['GET'])
+@role_required(['admin', 'duty_officer', 'viewer'])
 def get_passes():
     passes = Pass.query.all()
     return jsonify([p.to_dict() for p in passes]), 200
 
 @pass_bp.route('/', methods=['POST'])
+@role_required(['admin', 'duty_officer'])
 def create_pass():
-    if not is_admin():
-        return jsonify({"error": "Unauthorized"}), 403
         
     data = request.get_json()
+    schema = {
+        'user_id': {'type': 'int', 'required': True},
+        'start_date': {'type': 'date', 'required': True},
+        'end_date': {'type': 'date', 'required': True},
+        'reason': {'type': 'string'}
+    }
+    errors = validate_input(data, schema)
+    if errors:
+        return jsonify({"error": "Validation failed", "details": errors}), 400
+        
     user_id = data.get('user_id')
     start_date_str = data.get('start_date')
     end_date_str = data.get('end_date')
@@ -43,9 +52,8 @@ def create_pass():
     return jsonify(new_pass.to_dict()), 201
 
 @pass_bp.route('/<int:pass_id>', methods=['DELETE'])
+@role_required('admin')
 def delete_pass(pass_id):
-    if not is_admin():
-        return jsonify({"error": "Unauthorized"}), 403
         
     p = Pass.query.get(pass_id)
     if not p:
